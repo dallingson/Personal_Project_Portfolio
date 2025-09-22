@@ -1,0 +1,26 @@
+[
+    {
+        "id": "project1",
+        "title": "Project 1",
+        "description": "A brief description of project 1",
+        "image": "project1-image.jpg",
+        "url": "project1-url.com",
+        "details": "Detailed description of project 1 goes here. This is where you can add more information about the technologies used, challenges faced, and solutions implemented."
+    },
+    {
+        "id": "project2",
+        "title": "Project 2",
+        "description": "A brief description of project 2",
+        "image": "project2-image.jpg",
+        "url": "project2-url.com",
+        "details": "Detailed description of project 2 goes here. This is where you can add more information about the technologies used, challenges faced, and solutions implemented."
+    },
+    {
+        "id": "project3",
+        "title": "Project 3",
+        "description": "A brief description of project 3",
+        "image": "project3-image.jpg",
+        "url": "project3-url.com",
+        "details": "Detailed description of project 3 goes here. This is where you can add more information about the technologies used, challenges faced, and solutions implemented."
+    }
+]
