@@ -7,6 +7,9 @@ on:
     paths:
       - 'projects/*.md'
 
+permissions:
+  contents: write
+  
 jobs:
   convert-markdown:
     runs-on: ubuntu-latest
