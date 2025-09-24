@@ -30,16 +30,13 @@ jobs:
         run: |
           echo "Converting markdown files..."
           ls -la projects/
-          if [ ! -f projects/*.md ]; then
-            echo "No markdown files found"
-            exit 0
-          fi
           
           for file in projects/*.md; do
             if [ ! -f "$file" ]; then
-              echo "Skipping $file - not a file"
+              echo "No markdown files found"
               continue
             fi
+            
             echo "Processing: $file"
             filename=$(basename -- "$file" .md)
             output_file="project-pages/${filename}.html"
@@ -52,53 +49,66 @@ jobs:
             url=$(grep -oP '(?<=url: ).*' "$file" | head -1 || echo "#")
 
             echo "Creating HTML file: $output_file"
-            echo "Extracted metadata: id=$id, title=$title"
-            
+            echo "Metadata: id=$id, title=$title"
+
             # Create HTML file
             cat > "$output_file" << 'EOF'
-<!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>$title - My Portfolio</title>
-              <meta name="description" content="Detailed information about $title - web development project">
-              <link rel="stylesheet" href="../styles.css">
-          </head>
-          <body>
-              <header>
-                  <h1>$title</h1>
-              </header>
+              <!DOCTYPE html>
+              <html lang="en">
+              <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>PROJECT_TITLE - My Portfolio</title>
+                  <meta name="description" content="Detailed information about PROJECT_TITLE - web development project">
+                  <link rel="stylesheet" href="../styles.css">
+              </head>
+              <body>
+                  <header>
+                      <h1>PROJECT_TITLE</h1>
+                  </header>
 
-              <div class="container">
-                  <a href="../index.html" class="back-link" aria-label="Back to main portfolio page">← Back to Portfolio</a>
-                  
-                  <div class="project-detail">
-                      <img src="../$image" alt="Detailed screenshot of $title web application interface" style="width: 100%; max-width: 600px; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem;">
-          EOF
+                  <div class="container">
+                      <a href="../index.html" class="back-link" aria-label="Back to main portfolio page">← Back to Portfolio</a>
+                      
+                      <div class="project-detail">
+                          <img src="../PROJECT_IMAGE" alt="Detailed screenshot of PROJECT_TITLE web application interface" style="width: 100%; max-width: 600px; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem;">
+              EOF
 
-            # Convert markdown content (skip frontmatter)
-            sed '1,/^---$/d; 1,/^---$/d' "$file" | pandoc -f markdown -t html >> "$output_file"
+                          # Replace placeholders
+                          sed -i "s/PROJECT_TITLE/$title/g" "$output_file"
+                          sed -i "s/PROJECT_IMAGE/$image/g" "$output_file"
 
-            cat >> "$output_file" << EOF
-                      <p><strong>External Link:</strong> <a href="$url" target="_blank">View Project</a></p>
+                          # Convert markdown content (skip frontmatter)
+                          sed '1,/^---$/d; 1,/^---$/d' "$file" | pandoc -f markdown -t html >> "$output_file"
+
+                          # Add footer
+                          cat >> "$output_file" << 'EOF'
+                          <p><strong>External Link:</strong> <a href="PROJECT_URL" target="_blank">View Project</a></p>
+                      </div>
                   </div>
-              </div>
-              
-              <footer>
-                  <p>Connect with me on <a href="https://linkedin.com/in/your-profile" target="_blank">LinkedIn</a></p>
-              </footer>
-          </body>
-          </html>
-          EOF
+                  
+                  <footer>
+                      <p>Connect with me on <a href="https://linkedin.com/in/your-profile" target="_blank">LinkedIn</a></p>
+                  </footer>
+              </body>
+              </html>
+              EOF
 
+            # Replace URL placeholder
+            sed -i "s|PROJECT_URL|$url|g" "$output_file"
+            
           done
 
       - name: Update Projects JSON
         run: |
           echo "[" > projects.json
           first=true
+          
           for file in projects/*.md; do
+            if [ ! -f "$file" ]; then
+              continue
+            fi
+            
             filename=$(basename -- "$file" .md)
             
             id=$(grep -oP '(?<=id: ).*' "$file" | head -1 || echo "$filename")
@@ -122,17 +132,21 @@ jobs:
                 "url": "$url",
                 "details": "$details"
               }
-          EOF
-          done
-          echo "]" >> projects.json
+            EOF
+                      done
+                      
+                      echo "]" >> projects.json
 
       - name: Update Gallery in Index
         run: |
           echo "Generating gallery tiles..."
-
-          # Generate new gallery tiles
+          
           gallery_tiles=""
           for file in projects/*.md; do
+            if [ ! -f "$file" ]; then
+              continue
+            fi
+            
             filename=$(basename -- "$file" .md)
             
             id=$(grep -oP '(?<=id: ).*' "$file" | head -1 || echo "$filename")
@@ -140,42 +154,36 @@ jobs:
             description=$(grep -oP '(?<=description: ).*' "$file" | head -1 || echo "Project description")
             image=$(grep -oP '(?<=image: ).*' "$file" | head -1 || echo "default.jpg")
 
-            gallery_tiles+="
-                <a href=\"project-pages/${id}.html\" class=\"project-card\" aria-label=\"View ${title} details\">
-                    <img src=\"${image}\" alt=\"Screenshot of ${title} web application\">
-                    <div class=\"project-info\">
-                        <h3>${title}</h3>
-                        <p>${description}</p>
-                    </div>
-                </a>"
+            gallery_tiles+="            <a href=\"project-pages/${id}.html\" class=\"project-card\" aria-label=\"View ${title} details\">
+                <img src=\"${image}\" alt=\"Screenshot of ${title} web application\">
+                <div class=\"project-info\">
+                    <h3>${title}</h3>
+                    <p>${description}</p>
+                </div>
+            </a>
+"
           done
 
-          # Update index.html gallery
-          echo "Updating index.html gallery..."
-          echo "Gallery tiles: $gallery_tiles"
+          echo "Gallery tiles generated"
+          echo "Updating index.html..."
           
-          # Replace gallery content
-          if [ -n "$gallery_tiles" ]; then
-            echo "Replacing gallery content..."
-            python3 -c "
-import re
-with open('index.html', 'r') as f:
-    content = f.read()
-pattern = r'(<section class=\"gallery\" aria-label=\"Project Gallery\">).*?(</section>)'
-replacement = r'\1\n$gallery_tiles\n        \2'
-content = re.sub(pattern, replacement, content, flags=re.DOTALL)
-with open('index.html', 'w') as f:
-    f.write(content)
-" || echo "Python replacement failed"
-          else
-            echo "No gallery tiles to add"
-          fi
+          # Create new index.html with updated gallery
+          awk -v tiles="$gallery_tiles" '
+          /<section class="gallery" aria-label="Project Gallery">/ {
+            print
+            print tiles "        "
+            while (getline && !/^[[:space:]]*<\/section>/) continue
+            print
+            next
+          }
+          { print }
+          ' index.html > index.tmp && mv index.tmp index.html
 
       - name: Commit and Push Changes
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          git add .
           git status
-          git add project-pages/*.html projects.json index.html
           git commit -m "Updated project HTML files and gallery" || echo "No changes to commit"
           git push
