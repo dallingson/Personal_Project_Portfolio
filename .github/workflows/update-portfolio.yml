@@ -2,8 +2,10 @@ name: Update Portfolio
 
 on:
   push:
-    paths:
-      - 'projects.json'
+    branches: [main]
+  pull_request:
+    types: [closed]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -17,11 +19,50 @@ jobs:
         with:
           node-version: '18'
           
+      - name: Extract project from PR
+        if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'new-project')
+        run: |
+          # Extract project info from PR body
+          echo '${{ github.event.pull_request.body }}' > pr_body.txt
+          
       - name: Generate project pages
         run: |
           node -e "
           const fs = require('fs');
-          const projects = JSON.parse(fs.readFileSync('projects.json', 'utf8'));
+          let projects = [];
+          
+          // Load existing projects
+          if (fs.existsSync('projects.json')) {
+            projects = JSON.parse(fs.readFileSync('projects.json', 'utf8'));
+          }
+          
+          // Add new project from PR if merged
+          if (process.env.GITHUB_EVENT_NAME === 'pull_request' && fs.existsSync('pr_body.txt')) {
+            const prBody = fs.readFileSync('pr_body.txt', 'utf8');
+            const idMatch = prBody.match(/\*\*Project ID:\*\*\s*(.+)/i);
+            const titleMatch = prBody.match(/\*\*Project Title:\*\*\s*(.+)/i);
+            const descMatch = prBody.match(/\*\*Description:\*\*\s*(.+)/i);
+            const imageMatch = prBody.match(/\*\*Image:\*\*\s*(.+)/i);
+            const urlMatch = prBody.match(/\*\*External URL:\*\*\s*(.+)/i);
+            const detailsMatch = prBody.match(/\*\*Detailed Description:\*\*\s*([\s\S]*?)(?=\n---|$)/i);
+            
+            if (idMatch && titleMatch && descMatch && imageMatch && urlMatch && detailsMatch) {
+              const newProject = {
+                id: idMatch[1].trim(),
+                title: titleMatch[1].trim(),
+                description: descMatch[1].trim(),
+                image: imageMatch[1].trim(),
+                url: urlMatch[1].trim(),
+                details: detailsMatch[1].trim()
+              };
+              
+              // Check if project already exists
+              if (!projects.find(p => p.id === newProject.id)) {
+                projects.push(newProject);
+                fs.writeFileSync('projects.json', JSON.stringify(projects, null, 2));
+              }
+            }
+          }
           
           // Update index.html gallery section
           let indexHtml = fs.readFileSync('index.html', 'utf8');
@@ -82,5 +123,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git diff --staged --quiet || git commit -m "Auto-update portfolio pages"
+          git diff --staged --quiet || git commit -m "Auto-update portfolio pages from PR merge"
           git push
