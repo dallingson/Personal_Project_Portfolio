@@ -1,0 +1,126 @@
+name: Convert MD to HTML
+
+on:
+  push:
+    paths:
+      - 'projects/*.md'
+  workflow_dispatch:
+
+jobs:
+  convert-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Convert MD to HTML and update portfolio
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Get all MD files in projects folder
+          const projectsDir = './projects';
+          const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'));
+          
+          let projects = [];
+          
+          // Process each MD file
+          mdFiles.forEach(mdFile => {
+            const mdPath = path.join(projectsDir, mdFile);
+            const content = fs.readFileSync(mdPath, 'utf8');
+            
+            // Extract frontmatter
+            const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+            if (!frontmatterMatch) return;
+            
+            const frontmatter = {};
+            frontmatterMatch[1].split('\n').forEach(line => {
+              const [key, ...valueParts] = line.split(':');
+              if (key && valueParts.length) {
+                frontmatter[key.trim()] = valueParts.join(':').trim();
+              }
+            });
+            
+            // Extract markdown content
+            const markdownContent = content.replace(/^---\n[\s\S]*?\n---\n/, '');
+            
+            // Add to projects array
+            projects.push({
+              id: frontmatter.id,
+              title: frontmatter.title,
+              description: frontmatter.description,
+              image: frontmatter.image,
+              url: frontmatter.url,
+              details: markdownContent
+            });
+            
+            // Generate HTML file
+            const htmlContent = \`<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <title>\${frontmatter.title} - My Portfolio</title>
+    <meta name=\"description\" content=\"Detailed information about \${frontmatter.title} - web development project\">
+    <link rel=\"stylesheet\" href=\"../styles.css\">
+</head>
+<body>
+    <header>
+        <h1>\${frontmatter.title}</h1>
+    </header>
+
+    <div class=\"container\">
+        <a href=\"../index.html\" class=\"back-link\" aria-label=\"Back to main portfolio page\">← Back to Portfolio</a>
+        
+        <div class=\"project-detail\">
+            <img src=\"../\${frontmatter.image}\" alt=\"Detailed screenshot of \${frontmatter.title} web application interface\" style=\"width: 100%; max-width: 600px; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem;\">
+            \${markdownContent.replace(/^# .+$/m, '').replace(/## /g, '<h2>').replace(/### /g, '<h3>').replace(/- /g, '<li>').replace(/\n\n/g, '</p><p>').replace(/^(?!<)/gm, '<p>').replace(/<p><\/p>/g, '').replace(/<p><li>/g, '<ul><li>').replace(/<\/li><p>/g, '</li></ul><p>')}
+            <p><strong>External Link:</strong> <a href=\"\${frontmatter.url}\" target=\"_blank\">View Project</a></p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Connect with me on <a href=\"https://linkedin.com/in/your-profile\" target=\"_blank\">LinkedIn</a></p>
+    </footer>
+</body>
+</html>\`;
+            
+            // Write HTML file to project-pages folder (remove duplicates by overwriting)
+            if (!fs.existsSync('project-pages')) fs.mkdirSync('project-pages');
+            fs.writeFileSync(\`project-pages/\${frontmatter.id}.html\`, htmlContent);
+          });
+          
+          // Update projects.json
+          fs.writeFileSync('projects.json', JSON.stringify(projects, null, 2));
+          
+          // Update index.html gallery
+          let indexHtml = fs.readFileSync('index.html', 'utf8');
+          const galleryItems = projects.map(p => 
+            \`            <a href=\"project-pages/\${p.id}.html\" class=\"project-card\" aria-label=\"View \${p.title} details\">
+                <img src=\"\${p.image}\" alt=\"Screenshot of \${p.title} web application\">
+                <div class=\"project-info\">
+                    <h3>\${p.title}</h3>
+                    <p>\${p.description}</p>
+                </div>
+            </a>\`
+          ).join('\n\n');
+          
+          indexHtml = indexHtml.replace(
+            /<section class=\"gallery\"[\s\S]*?<\/section>/,
+            \`<section class=\"gallery\" aria-label=\"Project Gallery\">\n\${galleryItems}\n        </section>\`
+          );
+          fs.writeFileSync('index.html', indexHtml);
+          "
+          
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git diff --staged --quiet || git commit -m "Auto-convert MD to HTML and update portfolio"
+          git push

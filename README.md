@@ -4,30 +4,38 @@
 
 To add a new project to your portfolio:
 
-1. **Upload project image** to the repository
-2. **Create an issue** using the "Add New Project" template
-3. **Fill out all required fields** in the issue template
-4. **Create a pull request** that references the issue
-5. **Add the `new-project` label** to your pull request
-6. **Merge the pull request** - the workflow will automatically:
-   - Extract project info from the PR description
-   - Add it to `projects.json`
-   - Generate the new project HTML page
+1. **Copy the template** from `templates/project-template.md`
+2. **Fill out the frontmatter** with your project details:
+   - `id`: unique project identifier (lowercase, no spaces)
+   - `title`: project display name
+   - `description`: brief description for gallery
+   - `image`: image filename
+   - `url`: external project URL
+3. **Write your project content** in markdown below the frontmatter
+4. **Save the file** as `projects/your-project-id.md`
+5. **Commit and push** - the workflow will automatically:
+   - Convert MD to HTML
+   - Update `projects.json`
    - Update the main gallery
+   - Remove duplicate HTML files
 
-## Project Template Format
+## Template Structure
 
-When creating a PR, include this format in the description:
+```markdown
+---
+id: my-project
+title: My Project
+description: Brief description
+image: project-image.jpg
+url: https://github.com/username/project
+---
 
+# Your markdown content here
 ```
-**Project ID:** my-new-project
-**Project Title:** My New Project
-**Description:** Brief description for the gallery
-**Image:** my-project-image.jpg
-**External URL:** https://github.com/username/project
-**Detailed Description:** Full description with technologies used, challenges faced, and solutions implemented.
-```
 
-## Manual Method
+## Workflow Features
 
-Alternatively, edit `projects.json` directly and push to trigger the workflow.
+- Automatic MD to HTML conversion
+- Duplicate prevention
+- Gallery auto-update
+- Frontmatter parsing
