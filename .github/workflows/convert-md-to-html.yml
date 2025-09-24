@@ -1,80 +1,70 @@
-name: Convert MD to HTML
+name: Convert Project Markdown to HTML
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'projects/*.md'
-  workflow_dispatch:
+      - 'images/*'
 
 jobs:
-  convert-and-update:
+  convert-markdown:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          
-      - name: Convert MD to HTML and update portfolio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Pandoc
         run: |
-          node -e '
-          const fs = require("fs");
-          const path = require("path");
-          
-          const projectsDir = "./projects";
-          const mdFiles = fs.readdirSync(projectsDir).filter(f => f.endsWith(".md"));
-          
-          let projects = [];
-          
-          mdFiles.forEach(mdFile => {
-            const mdPath = path.join(projectsDir, mdFile);
-            const content = fs.readFileSync(mdPath, "utf8");
-            
-            const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-            if (!frontmatterMatch) return;
-            
-            const frontmatter = {};
-            frontmatterMatch[1].split("\n").forEach(line => {
-              const [key, ...valueParts] = line.split(":");
-              if (key && valueParts.length) {
-                frontmatter[key.trim()] = valueParts.join(":").trim();
-              }
-            });
-            
-            const markdownContent = content.replace(/^---\n[\s\S]*?\n---\n/, "");
-            
-            projects.push({
-              id: frontmatter.id,
-              title: frontmatter.title,
-              description: frontmatter.description,
-              image: frontmatter.image,
-              url: frontmatter.url,
-              details: markdownContent
-            });
-            
-            const htmlContent = `<!DOCTYPE html>
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Create Project Pages Directory
+        run: mkdir -p project-pages
+
+      - name: Convert Markdown to HTML
+        run: |
+          for file in projects/*.md; do
+            filename=$(basename -- "$file" .md)
+            output_file="project-pages/${filename}.html"
+
+            # Extract metadata
+            id=$(grep -oP '(?<=id: ).*' "$file" | head -1 || echo "$filename")
+            title=$(grep -oP '(?<=title: ).*' "$file" | head -1 || echo "Unknown Project")
+            description=$(grep -oP '(?<=description: ).*' "$file" | head -1 || echo "Project description")
+            image=$(grep -oP '(?<=image: ).*' "$file" | head -1 || echo "default.jpg")
+            url=$(grep -oP '(?<=url: ).*' "$file" | head -1 || echo "#")
+
+            # Create HTML file
+            cat > "$output_file" << EOF
+          <!DOCTYPE html>
           <html lang="en">
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>${frontmatter.title} - My Portfolio</title>
-              <meta name="description" content="Detailed information about ${frontmatter.title} - web development project">
+              <title>$title - My Portfolio</title>
+              <meta name="description" content="Detailed information about $title - web development project">
               <link rel="stylesheet" href="../styles.css">
           </head>
           <body>
               <header>
-                  <h1>${frontmatter.title}</h1>
+                  <h1>$title</h1>
               </header>
 
               <div class="container">
                   <a href="../index.html" class="back-link" aria-label="Back to main portfolio page">← Back to Portfolio</a>
                   
                   <div class="project-detail">
-                      <img src="../${frontmatter.image}" alt="Detailed screenshot of ${frontmatter.title} web application interface" style="width: 100%; max-width: 600px; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem;">
-                      ${markdownContent.replace(/^# .+$/m, "").replace(/## /g, "<h2>").replace(/### /g, "<h3>").replace(/- /g, "<li>").replace(/\n\n/g, "</p><p>").replace(/^(?!<)/gm, "<p>").replace(/<p><\/p>/g, "").replace(/<p><li>/g, "<ul><li>").replace(/<\/li><p>/g, "</li></ul><p>")}
-                      <p><strong>External Link:</strong> <a href="${frontmatter.url}" target="_blank">View Project</a></p>
+                      <img src="../$image" alt="Detailed screenshot of $title web application interface" style="width: 100%; max-width: 600px; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1rem;">
+          EOF
+
+            # Convert markdown content (skip frontmatter)
+            sed '1,/^---$/d; /^---$/,$d' "$file" | pandoc -f markdown -t html >> "$output_file"
+
+            cat >> "$output_file" << EOF
+                      <p><strong>External Link:</strong> <a href="$url" target="_blank">View Project</a></p>
                   </div>
               </div>
               
@@ -82,36 +72,82 @@ jobs:
                   <p>Connect with me on <a href="https://linkedin.com/in/your-profile" target="_blank">LinkedIn</a></p>
               </footer>
           </body>
-          </html>`;
-                      
-                      if (!fs.existsSync("project-pages")) fs.mkdirSync("project-pages");
-                      fs.writeFileSync(`project-pages/${frontmatter.id}.html`, htmlContent);
-                    });
-                    
-                    fs.writeFileSync("projects.json", JSON.stringify(projects, null, 2));
-                    
-                    let indexHtml = fs.readFileSync("index.html", "utf8");
-                    const galleryItems = projects.map(p => 
-                      `            <a href="project-pages/${p.id}.html" class="project-card" aria-label="View ${p.title} details">
-                          <img src="${p.image}" alt="Screenshot of ${p.title} web application">
-                          <div class="project-info">
-                              <h3>${p.title}</h3>
-                              <p>${p.description}</p>
-                          </div>
-                      </a>`
-                    ).join("\n\n");
-                    
-                    indexHtml = indexHtml.replace(
-                      /<section class="gallery"[\s\S]*?<\/section>/,
-                      `<section class="gallery" aria-label="Project Gallery">\n${galleryItems}\n        </section>`
-                    );
-                    fs.writeFileSync("index.html", indexHtml);
-                    '
-                    
-      - name: Commit changes
+          </html>
+          EOF
+
+          done
+
+      - name: Update Projects JSON
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git diff --staged --quiet || git commit -m "Auto-convert MD to HTML and update portfolio"
+          echo "[" > projects.json
+          first=true
+          for file in projects/*.md; do
+            filename=$(basename -- "$file" .md)
+            
+            id=$(grep -oP '(?<=id: ).*' "$file" | head -1 || echo "$filename")
+            title=$(grep -oP '(?<=title: ).*' "$file" | head -1 || echo "Unknown Project")
+            description=$(grep -oP '(?<=description: ).*' "$file" | head -1 || echo "Project description")
+            image=$(grep -oP '(?<=image: ).*' "$file" | head -1 || echo "default.jpg")
+            url=$(grep -oP '(?<=url: ).*' "$file" | head -1 || echo "#")
+            details=$(sed '1,/^---$/d; /^---$/,$d' "$file" | tr '\n' ' ')
+
+            if [ "$first" = false ]; then
+              echo "," >> projects.json
+            fi
+            first=false
+
+            cat >> projects.json << EOF
+              {
+                "id": "$id",
+                "title": "$title",
+                "description": "$description",
+                "image": "$image",
+                "url": "$url",
+                "details": "$details"
+              }
+          EOF
+          done
+          echo "]" >> projects.json
+
+      - name: Update Gallery in Index
+        run: |
+          # Remove old gallery content
+          sed -i '/<section class="gallery"/,/<\/section>/{
+            /<section class="gallery"/!{
+              /<\/section>/!d
+            }
+          }' index.html
+
+          # Generate new gallery tiles
+          gallery_tiles=""
+          for file in projects/*.md; do
+            filename=$(basename -- "$file" .md)
+            
+            id=$(grep -oP '(?<=id: ).*' "$file" | head -1 || echo "$filename")
+            title=$(grep -oP '(?<=title: ).*' "$file" | head -1 || echo "Unknown Project")
+            description=$(grep -oP '(?<=description: ).*' "$file" | head -1 || echo "Project description")
+            image=$(grep -oP '(?<=image: ).*' "$file" | head -1 || echo "default.jpg")
+
+            gallery_tiles+="
+                <a href=\"project-pages/${id}.html\" class=\"project-card\" aria-label=\"View ${title} details\">
+                    <img src=\"${image}\" alt=\"Screenshot of ${title} web application\">
+                    <div class=\"project-info\">
+                        <h3>${title}</h3>
+                        <p>${description}</p>
+                    </div>
+                </a>"
+          done
+
+          # Add new gallery section
+          awk -v tiles="$gallery_tiles" '
+            /<section class="gallery"/ {print; print tiles; next}
+            {print}
+          ' index.html > index.tmp && mv index.tmp index.html
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add project-pages/*.html projects.json index.html
+          git commit -m "Updated project HTML files and gallery" || echo "No changes to commit"
           git push
