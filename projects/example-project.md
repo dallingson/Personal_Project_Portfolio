@@ -9,7 +9,7 @@ url: https://github.com/username/example-project
 # Example Project
 
 ## Overview
-This is an example project that demonstrates how to use the markdown template system. It shows how to structure your project documentation and metadata.
+This is an example project that demonstrates how to use the markdown template system. It shows how to structure your project documentation and metadata
 
 ## Technologies Used
 - HTML5
