@@ -22,7 +22,9 @@ jobs:
           sudo apt-get install -y pandoc
 
       - name: Create Project Pages Directory
-        run: mkdir -p project-pages
+        run: |
+          mkdir -p project-pages
+          touch project-pages/.gitkeep
 
       - name: Convert Markdown to HTML
         run: |
