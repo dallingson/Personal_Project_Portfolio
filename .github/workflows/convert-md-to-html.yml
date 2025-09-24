@@ -89,6 +89,49 @@ jobs:
           echo "=== GENERATED FILES ==="
           ls -la project-pages/
 
+      - name: Update Gallery
+        run: |
+          echo "=== UPDATING GALLERY ==="
+          
+          # Generate gallery tiles
+          gallery=""
+          for file in projects/*.md; do
+            if [ ! -f "$file" ]; then
+              continue
+            fi
+            
+            filename=$(basename "$file" .md)
+            title=$(grep "^title:" "$file" | sed 's/title: //')
+            id=$(grep "^id:" "$file" | sed 's/id: //')
+            description=$(grep "^description:" "$file" | sed 's/description: //')
+            image=$(grep "^image:" "$file" | sed 's/image: //')
+            
+            gallery="${gallery}            <a href=\"project-pages/${id}.html\" class=\"project-card\" aria-label=\"View ${title} details\">
+                <img src=\"${image}\" alt=\"Screenshot of ${title} web application\">
+                <div class=\"project-info\">
+                    <h3>${title}</h3>
+                    <p>${description}</p>
+                </div>
+            </a>
+"
+          done
+          
+          echo "Gallery content generated"
+          
+          # Replace gallery section in index.html
+          awk -v gallery="$gallery" '
+          /<section class="gallery" aria-label="Project Gallery">/ {
+            print
+            print gallery "        "
+            while (getline && !/^\/section>/) continue
+            print
+            next
+          }
+          { print }
+          ' index.html > index.tmp && mv index.tmp index.html
+          
+          echo "Gallery updated in index.html"
+
       - name: Commit Changes
         run: |
           git config --global user.name "GitHub Actions"
