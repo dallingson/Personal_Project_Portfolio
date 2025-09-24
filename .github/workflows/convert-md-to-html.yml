@@ -161,23 +161,23 @@ jobs:
                     <p>${description}</p>
                 </div>
             </a>
-"
-          done
+          "
+                    done
 
-          echo "Gallery tiles generated"
-          echo "Updating index.html..."
-          
-          # Create new index.html with updated gallery
-          awk -v tiles="$gallery_tiles" '
-          /<section class="gallery" aria-label="Project Gallery">/ {
-            print
-            print tiles "        "
-            while (getline && !/^[[:space:]]*<\/section>/) continue
-            print
-            next
-          }
-          { print }
-          ' index.html > index.tmp && mv index.tmp index.html
+                    echo "Gallery tiles generated"
+                    echo "Updating index.html..."
+                    
+                    # Create new index.html with updated gallery
+                    awk -v tiles="$gallery_tiles" '
+                    /<section class="gallery" aria-label="Project Gallery">/ {
+                      print
+                      print tiles "        "
+                      while (getline && !/^[[:space:]]*<\/section>/) continue
+                      print
+                      next
+                    }
+                    { print }
+                    ' index.html > index.tmp && mv index.tmp index.html
 
       - name: Commit and Push Changes
         run: |
