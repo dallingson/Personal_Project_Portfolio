@@ -113,7 +113,7 @@ jobs:
                     <p>${description}</p>
                 </div>
             </a>
-"
+            
           done
           
           echo "Gallery content generated"
@@ -123,7 +123,7 @@ jobs:
           /<section class="gallery" aria-label="Project Gallery">/ {
             print
             print gallery "        "
-            while (getline && !/^\/section>/) continue
+            while (getline && !/^[[:space:]]*<\/section>/) continue
             print
             next
           }
