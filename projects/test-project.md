@@ -9,7 +9,7 @@ url: https://github.com/username/test-project
 # Test Project
 
 ## Overview
-This is a test project to verify that the markdown to HTML conversion is working properly.
+This is a test project to verify that the markdown to HTML conversion is working properly
 
 ## Technologies Used
 - HTML
