@@ -30,7 +30,16 @@ jobs:
         run: |
           echo "Converting markdown files..."
           ls -la projects/
+          if [ ! -f projects/*.md ]; then
+            echo "No markdown files found"
+            exit 0
+          fi
+          
           for file in projects/*.md; do
+            if [ ! -f "$file" ]; then
+              echo "Skipping $file - not a file"
+              continue
+            fi
             echo "Processing: $file"
             filename=$(basename -- "$file" .md)
             output_file="project-pages/${filename}.html"
@@ -42,9 +51,12 @@ jobs:
             image=$(grep -oP '(?<=image: ).*' "$file" | head -1 || echo "default.jpg")
             url=$(grep -oP '(?<=url: ).*' "$file" | head -1 || echo "#")
 
+            echo "Creating HTML file: $output_file"
+            echo "Extracted metadata: id=$id, title=$title"
+            
             # Create HTML file
-            cat > "$output_file" << EOF
-          <!DOCTYPE html>
+            cat > "$output_file" << 'EOF'
+<!DOCTYPE html>
           <html lang="en">
           <head>
               <meta charset="UTF-8">
@@ -66,7 +78,7 @@ jobs:
           EOF
 
             # Convert markdown content (skip frontmatter)
-            sed '1,/^---$/d; /^---$/,$d' "$file" | pandoc -f markdown -t html >> "$output_file"
+            sed '1,/^---$/d; 1,/^---$/d' "$file" | pandoc -f markdown -t html >> "$output_file"
 
             cat >> "$output_file" << EOF
                       <p><strong>External Link:</strong> <a href="$url" target="_blank">View Project</a></p>
@@ -94,7 +106,7 @@ jobs:
             description=$(grep -oP '(?<=description: ).*' "$file" | head -1 || echo "Project description")
             image=$(grep -oP '(?<=image: ).*' "$file" | head -1 || echo "default.jpg")
             url=$(grep -oP '(?<=url: ).*' "$file" | head -1 || echo "#")
-            details=$(sed '1,/^---$/d; /^---$/,$d' "$file" | tr '\n' ' ')
+            details=$(sed '1,/^---$/d; 1,/^---$/d' "$file" | tr '\n' ' ')
 
             if [ "$first" = false ]; then
               echo "," >> projects.json
@@ -116,12 +128,7 @@ jobs:
 
       - name: Update Gallery in Index
         run: |
-          # Remove old gallery content
-          sed -i '/<section class="gallery"/,/<\/section>/{
-            /<section class="gallery"/!{
-              /<\/section>/!d
-            }
-          }' index.html
+          echo "Generating gallery tiles..."
 
           # Generate new gallery tiles
           gallery_tiles=""
@@ -148,16 +155,21 @@ jobs:
           echo "Gallery tiles: $gallery_tiles"
           
           # Replace gallery content
-          awk -v tiles="$gallery_tiles" '
-          /<section class="gallery" aria-label="Project Gallery">/ {
-            print
-            print tiles
-            while (getline && !/^\/section>/) continue
-            print
-            next
-          }
-          { print }
-          ' index.html > index.tmp && mv index.tmp index.html
+          if [ -n "$gallery_tiles" ]; then
+            echo "Replacing gallery content..."
+            python3 -c "
+import re
+with open('index.html', 'r') as f:
+    content = f.read()
+pattern = r'(<section class=\"gallery\" aria-label=\"Project Gallery\">).*?(</section>)'
+replacement = r'\1\n$gallery_tiles\n        \2'
+content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+with open('index.html', 'w') as f:
+    f.write(content)
+" || echo "Python replacement failed"
+          else
+            echo "No gallery tiles to add"
+          fi
 
       - name: Commit and Push Changes
         run: |
