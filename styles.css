@@ -36,6 +36,16 @@ header {
         padding: 1rem;
     }
     
+    .about-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-photo {
+        width: 150px;
+        height: 150px;
+    }
+    
     .project-detail {
         padding: 1rem;
     }
@@ -46,6 +56,38 @@ header {
     padding: 2rem;
     border-radius: 10px;
     margin-bottom: 2rem;
+}
+
+.about-content {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.profile-photo {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.about-text {
+    flex: 1;
+}
+
+.resume-link {
+    display: inline-block;
+    background-color: #4CAF50;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.resume-link:hover {
+    background-color: #45a049;
 }
 
 .gallery {
@@ -128,6 +170,10 @@ footer {
     margin-top: 2rem;
 }
 
+footer p {
+    font-size: 20px;
+}
+
 footer a {
     color: #4CAF50;
 }
@@ -140,4 +186,10 @@ footer a:focus {
 .back-link:focus {
     outline: 2px solid #4CAF50;
     outline-offset: 2px;
+}
+
+.social-icon {
+    width: 30px;
+    height: 30px;
+    vertical-align: middle;
 }

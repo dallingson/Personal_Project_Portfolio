@@ -1,32 +1,36 @@
 ---
-id: project-id-here
-title: Project Title Here
-description: Brief description for gallery
-image: project-image.jpg
-url: https://github.com/username/project
+id: example-project
+title: Example Project
+description: A sample project demonstrating the markdown template
+image: project1-image.jpg
+url: https://github.com/username/example-project
 ---
 
-# Project Title Here
+# Example Project
 
 ## Overview
-Detailed description of your project goes here. Explain what the project does, why you built it, and what problems it solves.
+This is an example project that demonstrates how to use the markdown template system. It shows how to structure your project documentation and metadata
 
 ## Technologies Used
-- Technology 1
-- Technology 2
-- Technology 3
+- HTML5
+- CSS3
+- JavaScript
+- Node.js
 
 ## Challenges & Solutions
-Describe any challenges you faced during development and how you solved them.
+The main challenge was creating a flexible template system that could handle various project types while maintaining consistency.
 
 ## Features
-- Feature 1
-- Feature 2
-- Feature 3
+- Responsive design
+- Clean documentation
+- Easy to maintain
+- Automated deployment
 
 ## Future Improvements
-List any planned improvements or features you'd like to add.
+- Add more interactive elements
+- Implement dark mode
+- Add project filtering
 
 ## Links
 - [Live Demo](https://your-demo-url.com)
-- [GitHub Repository](https://github.com/username/project)
+- [GitHub Repository](https://github.com/username/example-project)
