@@ -1,7 +1,7 @@
 ---
 id: example-project
 title: Example Project
-description: A sample project demonstrating the markdown template
+description: A sample project demonstrating the markdown template.
 image: project1-image.jpg
 url: https://github.com/username/example-project
 ---
