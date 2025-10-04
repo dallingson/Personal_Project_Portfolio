@@ -67,7 +67,7 @@ jobs:
               <div class="container">
                   <a href="../index.html" class="back-link">← Back to Portfolio</a>
                   <div class="project-detail">
-                      <img src="../${image}" alt="${title}">
+                      <img src="/assets/${image}" alt="${title}">
                       <div class="content">
           EOF
                       
