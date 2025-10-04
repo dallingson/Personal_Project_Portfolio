@@ -110,9 +110,7 @@ jobs:
             image=$(grep "^image:" "$file" | sed 's/image: //')
             
             gallery="${gallery}            <a href=\"project-pages/${id}.html\" class=\"project-card\" aria-label=\"View ${title} details\">
-                <img src=\project-pages\assets\"${image}\" alt=\"Screenshot of ${title} web application\">
-                <div class=\"project-info\">
-                    <h3>${title}</h3>
+                <img src="project-pages/assets/${image}" alt="Screenshot of ${title                    <h3>${title}</h3>
                     <p>${description}</p>
                 </div>
             </a>
