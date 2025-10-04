@@ -1,7 +1,7 @@
 ---
 id: test-project
 title: Test Project
-description: A test project to verify the workflow
+description: A test project to verify the workflow.
 image: project1-image.jpg
 url: https://github.com/username/test-project
 ---
