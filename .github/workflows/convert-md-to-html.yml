@@ -67,7 +67,7 @@ jobs:
               <div class="container">
                   <a href="../index.html" class="back-link">← Back to Portfolio</a>
                   <div class="project-detail">
-                      <img src="/assets/${image}" alt="${title}">
+                      <img src="../assets/${image}" alt="${title}">
                       <div class="content">
           EOF
                       
@@ -109,7 +109,7 @@ jobs:
             description=$(grep "^description:" "$file" | sed 's/description: //')
             image=$(grep "^image:" "$file" | sed 's/image: //')
             
-            gallery="${gallery}            <a href=\"project-pages/${id}.html\" class=\"project-card\" aria-label=\"View ${title} details\">\n                <img src=\"/project-pages/assets/${image}\" alt=\"Screenshot of ${title}\">\n                <div class=\"project-info\">\n                    <h3>${title}</h3>\n                    <p>${description}</p>\n                </div>\n            </a>\n"
+            gallery="${gallery}            <a href=\"project-pages/${id}.html\" class=\"project-card\" aria-label=\"View ${title} details\">\n                <img src=\"assets/${image}\" alt=\"Screenshot of ${title}\">\n                <div class=\"project-info\">\n                    <h3>${title}</h3>\n                    <p>${description}</p>\n                </div>\n            </a>\n"
           done
           
           echo "Gallery content generated"
