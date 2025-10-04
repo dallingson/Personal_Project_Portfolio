@@ -109,14 +109,7 @@ jobs:
             description=$(grep "^description:" "$file" | sed 's/description: //')
             image=$(grep "^image:" "$file" | sed 's/image: //')
             
-            gallery="${gallery}            <a href=\"project-pages/${id}.html\" class=\"project-card\" aria-label=\"View ${title} details\">
-                <img src="/project-pages/assets/${image}" alt="Screenshot of ${title}">
-                <div class="project-info">
-                    <h3>${title}</h3>
-                    <p>${description}</p>
-                </div>
-            </a>
-          "
+            gallery="${gallery}            <a href=\"project-pages/${id}.html\" class=\"project-card\" aria-label=\"View ${title} details\">\n                <img src=\"/project-pages/assets/${image}\" alt=\"Screenshot of ${title}\">\n                <div class=\"project-info\">\n                    <h3>${title}</h3>\n                    <p>${description}</p>\n                </div>\n            </a>\n"
           done
           
           echo "Gallery content generated"
