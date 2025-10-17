@@ -2,7 +2,7 @@
 id: Grandpa-Hates-Squirrels
 title: Grandpa Hates Squirrels
 description: A simple video game about a grandpa who hates squirrels
-image: assets/Grandpa-Hates-Squirrels.png
+image: Grandpa-Hates-Squirrels.png
 url: https://github.com/dallingson/grandpa_hates_squirrels
 ---
 
