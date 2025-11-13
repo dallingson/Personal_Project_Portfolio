@@ -3,7 +3,7 @@ id: pantry-tracker-app
 title: Pantry Tracker App
 description: Android app to track pantry and fridge items with expiration dates
 image: assets/pantry-tracker-screenshot.jpg
-url: https://github.com/dallingson/pantry-tracker-app
+url: https://github.com/dallingson/pantrymate
 ---
 
 # Pantry Tracker App
@@ -18,14 +18,13 @@ A Flutter-based Android application that helps users manage their pantry and fri
 - Material Design
 
 ## Challenges & Solutions
-Implementing local data persistence and creating an intuitive interface for managing multiple item attributes while ensuring smooth performance on Android devices.
+Getting flutter to work on my PC. I havent used it very much, so I had to do lots of troubleshooting.
 
 ## Features
 - Add/edit pantry and fridge items
 - Track quantities and expiration dates
 - Categorize items by type
 - Expiration date notifications
-- Search and filter functionality
 
 ## Future Improvements
 - Barcode scanning for easy item entry
@@ -34,4 +33,4 @@ Implementing local data persistence and creating an intuitive interface for mana
 - Cloud sync across devices
 
 ## Links
-- [GitHub Repository](https://github.com/dallingson/pantry-tracker-app)
+- [GitHub Repository](https://github.com/dallingson/pantrymate)
