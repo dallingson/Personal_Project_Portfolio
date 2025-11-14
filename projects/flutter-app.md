@@ -1,8 +1,8 @@
 ---
-id: pantry-tracker-app
+id: pantrymate
 title: Pantry Tracker App
 description: Android app to track pantry and fridge items with expiration dates
-image: assets/pantry-tracker-screenshot.jpg
+image: assets/pantrymate.jpg
 url: https://github.com/dallingson/pantrymate
 ---
 
