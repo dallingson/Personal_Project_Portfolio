@@ -1,5 +1,5 @@
 ---
-id: pantrymate
+id: pantry-mate
 title: Pantry Tracker App
 description: Android app to track pantry and fridge items with expiration dates
 image: assets/pantrymate.jpg
